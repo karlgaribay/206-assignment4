@@ -1,0 +1,67 @@
+---
+title: "a4_task2_karla_garibay"
+author: "Karla Garibay Garcia"
+date: "11/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(lubridate)
+library(effsize)
+library(broom)
+library(ggbeeswarm)
+library(kableExtra)
+```
+
+### 1. Introduction
+
+This report explores the counts and sizes of juvenile snowshoe hares recorded from 1998 - 2012 in Bonanza Creek Experimental Forest. 
+
+
+### 2. Data and analyses
+
+
+### 3. Exploratory Findings
+
+#### A. Annual juvenile hard trap counts
+
+
+The total number of juvenile hare trappings during each year of the study, from 1999 - 2012, for all grid sites were counted. 
+
+
+```{r}
+bonanza_hares <- read.csv(here("data", "bonanza_hares.csv"))
+
+hares_counts <- bonanza_hares %>% 
+  mutate(date_new = mdy(date)) %>% 
+  mutate(year = year(date_new)) %>% 
+  filter(age == "j") %>% 
+  count(year)
+
+ggplot(data = hares_counts, 
+       aes(x = year,
+           y = n)) +
+  geom_bar(stat = "identity", 
+           fill = "cyan4") +
+  labs(x = "Year", 
+       y = "Count", 
+       title = "Juvenile hare trappings from 1999-2012") +
+  scale_x_continuous(breaks = seq(from = 1999, to = 2012, by = 2)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 130, by = 10)) +
+  theme_grey()
+```
+
+
+#### B. Visualize juvenile hare weights
+
+#### C. Juvenile male & female snowshoe hare weight comparison 
+
+#### D. Relationship between juvenile weight & hind foot length
+
+### 4. Summary
+
+
+### 5. Citations
