@@ -26,13 +26,11 @@ This report explores the counts and sizes of juvenile snowshoe hares recorded fr
 
 ### 3. Exploratory Findings
 
-#### A. Annual juvenile hard trap counts
+#### A. Annual juvenile snowshoe hare trap counts
 
+As a strating point, annual juvenile snowshoe hare trap counts were visualized (Figure 1). The minimum count of juvenile hare trappings of 2 occurred in 2010, while the maximum of 126 occurred in 1999.  The distribution of annual trap counts is skewed to the right, with a mean of 31.5 and a median of 18.5. Only four out of the 12 years studied have annual trap counts higher than the mean, which may mean that the median is a better measure of centrality for this distribution. Although we see a general trend of decreasing annual trap counts, it is possible that the trend is influenced by the study design and data collection practices. For example if in 1999, the field team checked the traps everyday, but in 2012 they only checked the traps 50 times, that could explain the much lower annual count for 2010 compared to 1999. To determine if a true population trend exists, I would recommend standardizing the number of days, traps, sites, and other data collection methods for counting juvenile snowshoe hares per year. 
 
-The total number of juvenile hare trappings during each year of the study, from 1999 - 2012, for all grid sites were counted. 
-
-
-```{r}
+```{r, echo=FALSE}
 bonanza_hares <- read.csv(here("data", "bonanza_hares.csv"))
 
 hares_counts <- bonanza_hares %>% 
@@ -48,12 +46,20 @@ ggplot(data = hares_counts,
            fill = "cyan4") +
   labs(x = "Year", 
        y = "Count", 
-       title = "Juvenile hare trappings from 1999-2012") +
+       title = "Absolute juvenile snowshoe hare trappings from 1999-2012") +
   scale_x_continuous(breaks = seq(from = 1999, to = 2012, by = 2)) +
   scale_y_continuous(breaks = seq(from = 0, to = 130, by = 10)) +
   theme_grey()
+
 ```
 
+**Figure 1.** The total number of juvenile snowshoe hare trappings per year,from 1999 - 2012, for all grid sites in Bonanza Creek Experimental Forest. Data: Kielland et al. (2027). 
+
+```{r, include=FALSE}
+counts_stats <- hares_counts %>% 
+  summarize(mean_count = mean(n),
+            median_count = median(n))
+```
 
 #### B. Visualize juvenile hare weights
 
