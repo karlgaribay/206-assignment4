@@ -29,14 +29,17 @@ This report explores the counts and sizes of juvenile snowshoe hares recorded fr
 #### A. Annual juvenile snowshoe hare trap counts
 
 ```{r, fig.align="center"}
+#Read in data
 bonanza_hares <- read.csv(here("data", "bonanza_hares.csv"))
 
+#Count annual juvenile hares
 hares_counts <- bonanza_hares %>% 
   mutate(date_new = mdy(date)) %>% 
   mutate(year = year(date_new)) %>% 
   filter(age == "j") %>% 
   count(year)
 
+#Visualize annual counts with bar graph
 ggplot(data = hares_counts, 
        aes(x = year,
            y = n)) +
@@ -44,7 +47,7 @@ ggplot(data = hares_counts,
            fill = "cyan4") +
   labs(x = "Year", 
        y = "Count", 
-       title = "Juvenile snowshoe hare trappings from 1999-2012") +
+       title = "Juvenile snowshoe hare trappings at Bonanza Creek from 1999-2012(GARIBAY)") +
   scale_x_continuous(breaks = seq(from = 1999, to = 2012, by = 2)) +
   scale_y_continuous(breaks = seq(from = 0, to = 130, by = 10)) +
   theme_bw()
@@ -58,26 +61,29 @@ ggplot(data = hares_counts,
 As a strating point, annual juvenile snowshoe hare trap counts were visualized (Figure 1). The minimum count of juvenile hare trappings of 2 occurred in 2010, while the maximum of 126 occurred in 1999.  The distribution of annual trap counts is skewed to the right, with a mean of 31.5 and a median of 18.5. Only four out of the 12 years studied have annual trap counts higher than the mean, which may mean that the median is a better measure of centrality for this distribution. Although we see a general trend of decreasing annual trap counts, it is possible that the trend is influenced by the study design and data collection practices. For example if in 1999, the field team checked the traps everyday, but in 2012 they only checked the traps 50 times, that could explain the much lower annual count for 2010 compared to 1999. To determine if a true population trend exists, I would recommend standardizing the number of days, traps, sites, and other data collection methods for counting juvenile snowshoe hares per year. 
 
 ```{r, include=FALSE}
+#Calculate mean and median annual counts
 counts_stats <- hares_counts %>% 
   summarize(mean_count = mean(n),
             median_count = median(n))
 ```
 
-#### B. Male and female juvenile hare weight visualization
+#### B. Male and female juvenile snowshoe hare weight visualization
 
 ```{r, fig.align="center"}
+#Create subset of juvenile hares 
 juvenile_hares <- bonanza_hares %>% 
   filter(age == "j") %>% 
-  mutate(sex_new = case_when(sex == "f" ~ "Female", 
+  mutate(sex_new = case_when(sex == "f" ~ "Female", #create more descriptive sex column
                              sex == "m" ~ "Male", 
                              TRUE ~ "Unknown"))
 
+#Plot female, male, and unknown juvenile hare weights using ggplot_beeswarm for each sample site
 p <- ggplot(data = juvenile_hares, 
        aes(x = sex_new, 
            y = weight)) +
   geom_beeswarm(aes(color = sex_new)) +
-  scale_color_manual(values = c("palevioletred1", "lightskyblue", "grey")) +
-  geom_boxplot(fill = NA, width = 0.4, outlier.color = NA) +
+  scale_color_manual(values = c("goldenrod2", "cyan4", "coral")) +
+  geom_boxplot(fill = NA, width = 0.4, outlier.color = NA) + #Add percentiles, median, and mean statistics to beeswarm plot
   stat_summary(fun=mean, 
                geom="point", 
                shape=20, 
@@ -86,15 +92,14 @@ p <- ggplot(data = juvenile_hares,
                fill="black") +
   labs(x = "Sex", 
        y = "Weight (g)", 
-       title = "Female and male juvenile hare weight across Bonanza Creek sites") +
+       title = "Female & male juvenile snowshoe hare weight across Bonanza Creek sites (GARIBAY)") +
   scale_y_continuous(breaks = seq(from = 0, to = 1650, by = 150)) +
   facet_wrap(~grid) + 
   theme_bw(base_size = 10)
 
-
+#Rename grid titles
 grid.labs <- c("Bonanza Black Spruce", "Bonanza Mature", "Bonanza Riparian")
 names(grid.labs) <- c("bonbs", "bonmat", "bonrip")
-
 p + facet_wrap(~grid, labeller = labeller(grid = grid.labs))
 
 ```
@@ -107,6 +112,7 @@ Male juvenile hares tend to have have higher mean and median weights across the 
 #### C. Juvenile female and male snowshoe hare weight comparison 
 
 ```{r, include=FALSE}
+#Visualize juvenile hare weight data with histogram and qqplot
 ggplot(data = juvenile_hares, 
        aes(x = weight)) +
   geom_histogram(bins = 25) +
@@ -120,8 +126,9 @@ ggplot(data = juvenile_hares,
 ```
 
 ```{r, include=FALSE}
-#Pull vectors of weights for female and male juvenile snowshoe hares
+#T-test code
 
+#Pull vectors of weights for female and male juvenile snowshoe hares
 fm_juv_hares <- juvenile_hares %>% 
   filter(weight != "NA")
 
@@ -164,22 +171,96 @@ On average, juvenile male snowshoe hares have higher mean weights than females (
 
 
 ```{r}
+#Create table with mean, sd, and n for female and male hares
 weight_stats <- juvenile_hares %>% 
-  filter(weight != "NA") %>% 
+  filter(weight != "NA") %>% #Remove NA weight measurements
   group_by(sex_new) %>% 
   summarize(mean = mean(weight),
             standard_deviation = sd(weight),
-            sample_size = n())
+            sample_size = n()) 
 
+#Make table easier to read and update columns
 weight_stats %>% 
   kbl(col.names = c("Sex", "Mean weight (g)", "Standard deviation (g)", "Sample size")) %>% 
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
 ```
 
 
-#### D. Relationship between juvenile weight & hind foot length
+#### D. Relationship between hind foot length and weight of juvenile snowshoe hares
+
+As a starting point, the relationship between hind foot length and weight was explored for all juvenile snowshoe hares (i.e., ignoring sex); further analysis is needed to compare the relationship between hind foot length and weight within each sex, and should also include site as an additional variable. 
+
+```{r, fig.align="center"}
+#Plot juvenile hind foot length vs. weight
+ggplot(data = juvenile_hares, 
+       aes(x = hindft, 
+           y = weight)) +
+  geom_point(color = "cyan4") +
+  labs(x = "Hind foot length (mm)",
+       y = "Weight (g)", 
+       title = "Hind foot length & weight of juvenile snowshoe hares (GARIBAY)") +
+  scale_x_continuous(breaks = seq(from = 0, to = 150, by = 10)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1650, by = 150)) +
+  theme_bw()
+
+#Looks somewhat linear, but has several outliers as hind foot length increases.
+```
+
+**Figure 3.** Relationship between hind foot length (mm) and weight (g) for juvenile snowshoe hares in the Bonanza Creek Exploratory Forest. Points indicate individual snowshoe hare measurements. Data: Kielland et al. (2017).
+
+```{r, include=FALSE}
+#Linear Regression model
+juvenile_lm <- lm(weight ~ hindft, data = juvenile_hares)
+
+
+#Get tidy versions of the model output to call on in text
+summary(juvenile_lm)
+juvenile_lm_tidy <- broom::tidy(juvenile_lm)
+
+
+#Get metrics at a glance
+juvenile_lm_out <- broom::glance(juvenile_lm) #p-value < 2.2e-16, so I have enough evidence to reject the null hyp and retain the alt hyp that the values for intercept and coefficient length are significantly different from 0. R^2 value 0.2988, means 29.88% variance in hare weight is explained by this model that only contains the explanatory variable of hind foot length.
+
+
+#Explore model assumptions; a linear relationship may not be the most responsible way to show relationship between hind foot length and weight.
+plot(juvenile_lm) 
+
+#Residual spread is not randomly distributed around the horizontal dotted line. Residual variance changes over the range of fitted values, which violates the homoscedasticity assumption. There is enough evidence to think it's heteroscedastic.
+
+#QQplot: -3 to -1 theoretical quantiles are not linear. There's a trend away from linearity with observations lower than the perfect line closer to smaller values, and slightly higher observations closer to larger values.
+
+#Cooks distance: No dashed red line present, but there is a labeled point, which may have too much influence on the model. 
+
+
+#Visualize the model, even though I'm concerned that linear regresion is not a valid tool to describe the relationship between hind foot length and weight.
+ggplot(data = juvenile_hares, 
+       aes(x = hindft, 
+           y = weight)) +
+  geom_point(color = "cyan4") +
+  labs(x = "Hind foot length (mm)",
+       y = "Weight (g)", 
+       title = "Hind foot length & weight of juvenile snowshoe hares (GARIBAY)") +
+  scale_x_continuous(breaks = seq(from = 0, to = 150, by = 10)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1650, by = 150)) +
+  theme_bw() +
+  geom_smooth(method = "lm") #add linear model to existing scatterplot
+
+#Pearson's r correlation
+juvenile_cor <- cor.test(juvenile_hares$hindft, juvenile_hares$weight)
+
+#Get tidy version of correlation output to call on in text
+juvenile_cor_tidy <- tidy(juvenile_cor)
+#Low p-value means there is enough evidence to reject the null hypothesis that the correlation between hind foot length and weight is 0. Pearson's r tells me there is a moderate positive correlation between hind foot length and weight.
+```
+
+The relationship between juvenile snowshoe hare hind foot length and weight appeared somewhat linear following initial visualization, but had multiple concerning outliers as hind foot length increased (Figure 3). Simple linear regression revealed that hind foot length somewhat predicts penguin body mass (p < 0.001), R^2^ of `r round(juvenile_lm_out$r.squared,3)` with an average slope of $\beta$ = `r round(juvenile_lm_tidy$estimate[2])` g mm^-1^ (i.e., for each one millimeter increase in hind foot length, we expect an average increase in weight of `r round(juvenile_lm_tidy$estimate[2],2)` g). Hind foot length and weight are moderately and significantly positively correlated (Pearson's *r* = `r round(juvenile_cor_tidy$estimate,2)`, t(`r juvenile_cor_tidy$parameter`) = `r round(juvenile_cor_tidy$statistic,2)`, p < 0.001). Diagnostic plots (not included) reveal abnormally distributed and heteroscedastic residuals.  
 
 ### 4. Summary
 
+Exploratory data analysis reveals teh following initial findings: 
+
+- Male juvenile snowshoe hares are larger in weight than females.
+- Male 
 
 ### 5. Citations
